@@ -475,6 +475,7 @@
         const state = {
             imageLoaded: false,
             originalImage: null,
+            originalFileName: 'image.png',
             baseCanvas: null,
             baseCtx: null,
             maskCanvas: null,
@@ -872,7 +873,7 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
-                img.onload = () => initializeImage(img);
+                img.onload = () => initializeImage(img, file.name);
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
@@ -920,12 +921,13 @@
             ctx.fillText('ID: 884-219-00', 600, 610);
 
             const img = new Image();
-            img.onload = () => initializeImage(img);
+            img.onload = () => initializeImage(img, 'sample_image.png');
             img.src = sampleCanvas.toDataURL('image/png');
         }
 
-        function initializeImage(img) {
+        function initializeImage(img, fileName = 'image.png') {
             state.originalImage = img;
+            state.originalFileName = fileName;
             state.imageLoaded = true;
 
             const w = img.width;
@@ -1528,12 +1530,24 @@
         function exportImage() {
             if (!state.imageLoaded) return;
 
+            const fullName = state.originalFileName || 'image.png';
+            const lastDotIndex = fullName.lastIndexOf('.');
+            
+            let exportName = '';
+            if (lastDotIndex !== -1) {
+                const name = fullName.substring(0, lastDotIndex);
+                const ext = fullName.substring(lastDotIndex);
+                exportName = `${name}_blur${ext}`;
+            } else {
+                exportName = `${fullName}_blur.png`;
+            }
+
             const link = document.createElement('a');
-            link.download = `blur-master-earthy-${Date.now()}.png`;
+            link.download = exportName;
             link.href = state.baseCanvas.toDataURL('image/png', 0.95);
             link.click();
 
-            showToast('Image exported!', 'success');
+            showToast(`Exported as ${exportName}!`, 'success');
         }
     </script>
 </body>
